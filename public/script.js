@@ -1,16 +1,17 @@
 // Firebase configuration (replace with your own config)
 const firebaseConfig = {
-    apiKey: "AIzaSyAN4XEXDi8_RQI-dR3TJWT_n9mCGzBl1Oo",
-    authDomain: "notepad-5aeb5.firebaseapp.com",
-    projectId: "notepad-5aeb5",
-    storageBucket: "notepad-5aeb5.appspot.com",
-    messagingSenderId: "408674885479",
-    appId: "1:408674885479:web:b2f7aa747d669e20c419c2"
+    apiKey: "your-api-key",
+    authDomain: "your-auth-domain",
+    projectId: "your-project-id",
+    storageBucket: "your-storage-bucket",
+    messagingSenderId: "your-messaging-sender-id",
+    appId: "your-app-id"
 };
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const storage = firebase.storage();
 
 document.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('notepad-content');
@@ -48,20 +49,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    textarea.addEventListener('input', saveNote);
-
     imageUpload.addEventListener('change', (event) => {
         const files = event.target.files;
         if (files.length > 0) {
             for (let file of files) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    imageContainer.appendChild(img);
-                    saveNote();
-                };
-                reader.readAsDataURL(file);
+                const storageRef = storage.ref(`${notepadId}/${file.name}`);
+                const uploadTask = storageRef.put(file);
+
+                uploadTask.on('state_changed',
+                    (snapshot) => {
+                        // Progress function (optional)
+                    },
+                    (error) => {
+                        console.error('Image upload failed:', error);
+                    },
+                    () => {
+                        // Get the uploaded file's URL and save it in Firestore
+                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
+                            const img = document.createElement('img');
+                            img.src = downloadURL;
+                            imageContainer.appendChild(img);
+                            saveNote();
+                        });
+                    }
+                );
             }
         }
     });
