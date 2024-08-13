@@ -24,12 +24,14 @@ document.addEventListener('DOMContentLoaded', () => {
     db.collection('notes').doc(notepadId).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
-            textarea.value = data.content;
-            data.images.forEach(imageSrc => {
-                const img = document.createElement('img');
-                img.src = imageSrc;
-                imageContainer.appendChild(img);
-            });
+            textarea.value = data.content || '';
+            if (data.images) {
+                data.images.forEach(imageSrc => {
+                    const img = document.createElement('img');
+                    img.src = imageSrc;
+                    imageContainer.appendChild(img);
+                });
+            }
         }
     });
 
@@ -64,7 +66,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
-
-
-
