@@ -17,11 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('notepad-content');
     const imageUpload = document.getElementById('image-upload');
     const imageContainer = document.getElementById('image-container');
-
-    // Get the current path (notepad ID)
+    
     const notepadId = window.location.pathname.substring(1) || 'default';
 
-    // Fetch content and images from Firestore for the specific notepad
+    // Fetch content from Firestore
     db.collection('notes').doc(notepadId).get().then((doc) => {
         if (doc.exists) {
             const data = doc.data();
@@ -34,9 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
+    }).catch(error => {
+        console.error("Error fetching document: ", error);
     });
 
-    // Save content and images to Firestore for the specific notepad
     function saveNote() {
         const images = [];
         document.querySelectorAll('#image-container img').forEach(img => {
@@ -46,34 +46,26 @@ document.addEventListener('DOMContentLoaded', () => {
         db.collection('notes').doc(notepadId).set({
             content: textarea.value,
             images: images,
+        }).then(() => {
+            console.log("Document successfully written!");
+        }).catch((error) => {
+            console.error("Error writing document: ", error);
         });
     }
 
-    imageUpload.addEventListener('change', (event) => {
-        const files = event.target.files;
-        if (files.length > 0) {
-            for (let file of files) {
-                const storageRef = storage.ref(`${notepadId}/${file.name}`);
-                const uploadTask = storageRef.put(file);
+    textarea.addEventListener('input', saveNote);
 
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Progress function (optional)
-                    },
-                    (error) => {
-                        console.error('Image upload failed:', error);
-                    },
-                    () => {
-                        // Get the uploaded file's URL and save it in Firestore
-                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                            const img = document.createElement('img');
-                            img.src = downloadURL;
-                            imageContainer.appendChild(img);
-                            saveNote();
-                        });
-                    }
-                );
-            }
+    imageUpload.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                imageContainer.appendChild(img);
+                saveNote();
+            };
+            reader.readAsDataURL(file);
         }
     });
 });
