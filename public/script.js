@@ -1,4 +1,3 @@
-// Firebase configuration (replace with your own config)
 const firebaseConfig = {
     apiKey: "AIzaSyAN4XEXDi8_RQI-dR3TJWT_n9mCGzBl1Oo",
     authDomain: "notepad-5aeb5.firebaseapp.com",
@@ -11,7 +10,6 @@ const firebaseConfig = {
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 document.addEventListener('DOMContentLoaded', () => {
     const textarea = document.getElementById('notepad-content');
@@ -49,30 +47,20 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    textarea.addEventListener('input', saveNote);
+
     imageUpload.addEventListener('change', (event) => {
         const files = event.target.files;
         if (files.length > 0) {
             for (let file of files) {
-                const storageRef = storage.ref(`${notepadId}/${file.name}`);
-                const uploadTask = storageRef.put(file);
-
-                uploadTask.on('state_changed',
-                    (snapshot) => {
-                        // Progress function (optional)
-                    },
-                    (error) => {
-                        console.error('Image upload failed:', error);
-                    },
-                    () => {
-                        // Get the uploaded file's URL and save it in Firestore
-                        uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-                            const img = document.createElement('img');
-                            img.src = downloadURL;
-                            imageContainer.appendChild(img);
-                            saveNote();
-                        });
-                    }
-                );
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    imageContainer.appendChild(img);
+                    saveNote();
+                };
+                reader.readAsDataURL(file);
             }
         }
     });
