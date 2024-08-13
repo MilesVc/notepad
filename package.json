@@ -3,11 +3,10 @@
   "version": "1.0.0",
   "main": "script.js",
   "scripts": {
-    "test": "echo 'Nothing to build!'"
+    "build": "echo 'No build process required!'"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": ""
 }
-
