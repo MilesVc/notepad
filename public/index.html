@@ -8,9 +8,13 @@
 </head>
 <body>
     <div class="notepad">
-        <textarea id="notepad-content" placeholder="Start typing..."></textarea>
-        <input type="file" id="image-upload" accept="image/*">
-        <div id="image-container"></div>
+        <input type="password" id="notepad-password" placeholder="Enter password">
+        <button id="password-submit">Submit</button>
+        <div id="notepad-content-container" style="display:none;">
+            <textarea id="notepad-content" placeholder="Start typing..."></textarea>
+            <input type="file" id="image-upload" accept="image/*">
+            <div id="image-container"></div>
+        </div>
     </div>
 
     <!-- Firebase App (the core Firebase SDK) -->

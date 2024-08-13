@@ -12,38 +12,67 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 document.addEventListener('DOMContentLoaded', () => {
+    const passwordInput = document.getElementById('notepad-password');
+    const passwordSubmit = document.getElementById('password-submit');
+    const notepadContentContainer = document.getElementById('notepad-content-container');
     const textarea = document.getElementById('notepad-content');
     const imageUpload = document.getElementById('image-upload');
     const imageContainer = document.getElementById('image-container');
 
-    // Get the current path (notepad ID)
     const notepadId = window.location.pathname.substring(1) || 'default';
 
-    // Fetch content and images from Firestore for the specific notepad
-    db.collection('notes').doc(notepadId).get().then((doc) => {
-        if (doc.exists) {
-            const data = doc.data();
-            textarea.value = data.content || '';
-            if (data.images) {
-                data.images.forEach(imageSrc => {
-                    const img = document.createElement('img');
-                    img.src = imageSrc;
-                    imageContainer.appendChild(img);
-                });
+    passwordSubmit.addEventListener('click', () => {
+        const enteredPassword = passwordInput.value;
+
+        db.collection('notes').doc(notepadId).get().then((doc) => {
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.password && data.password === btoa(enteredPassword)) {
+                    // Password matches, show the notepad content
+                    textarea.value = data.content || '';
+                    if (data.images) {
+                        data.images.forEach(imageSrc => {
+                            const img = document.createElement('img');
+                            img.src = imageSrc;
+                            imageContainer.appendChild(img);
+                        });
+                    }
+                    passwordInput.style.display = 'none';
+                    passwordSubmit.style.display = 'none';
+                    notepadContentContainer.style.display = 'block';
+                } else {
+                    alert('Incorrect password!');
+                }
+            } else {
+                // If no document exists, allow the user to set a password for a new note
+                const newPassword = prompt('Set a password for your notepad:');
+                if (newPassword) {
+                    db.collection('notes').doc(notepadId).set({
+                        password: btoa(newPassword),
+                        content: '',
+                        images: [],
+                    });
+                    passwordInput.style.display = 'none';
+                    passwordSubmit.style.display = 'none';
+                    notepadContentContainer.style.display = 'block';
+                }
             }
-        }
+        }).catch(error => {
+            console.error("Error fetching document: ", error);
+        });
     });
 
-    // Save content and images to Firestore for the specific notepad
     function saveNote() {
         const images = [];
         document.querySelectorAll('#image-container img').forEach(img => {
             images.push(img.src);
         });
 
-        db.collection('notes').doc(notepadId).set({
+        db.collection('notes').doc(notepadId).update({
             content: textarea.value,
             images: images,
+        }).catch(error => {
+            console.error("Error writing document: ", error);
         });
     }
 
